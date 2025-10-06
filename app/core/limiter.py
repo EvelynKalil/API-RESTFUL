@@ -1,6 +1,7 @@
 import os
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from app.core.constants import RATE_LIMIT_POST_MESSAGES
 
 IS_TEST_ENV = os.getenv("TEST_ENV", "").lower() == "true"
 
@@ -20,9 +21,9 @@ if IS_TEST_ENV:
 
     limiter = DummyLimiter()
 else:
-    # Línea solo ejecutada en producción.
-    # Instancia el limitador real de SlowAPI. No se testea directamente (# pragma: no cover)
+    # Executed only in production.
+    # Instantiates the real SlowAPI limiter (excluded from test coverage)
     limiter = Limiter(  # pragma: no cover
         key_func=get_remote_address,
-        default_limits=["3 per minute"]
+        default_limits=[RATE_LIMIT_POST_MESSAGES],
     )

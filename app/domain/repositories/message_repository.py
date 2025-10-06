@@ -3,6 +3,10 @@ from typing import List, Optional
 from app.domain.entities.message import Message
 
 class MessageRepository(ABC):
+    """
+    Abstract repository interface for managing Message entities.
+    Defines methods for persisting and retrieving messages across sessions.
+    """
     @abstractmethod # pragma: no cover
     def save(self, message: Message):
         """Persist a message and return it (may include DB-generated fields)."""
