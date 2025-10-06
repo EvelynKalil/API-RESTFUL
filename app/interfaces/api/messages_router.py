@@ -52,6 +52,7 @@ def get_service(db: Session) -> MessageService:
         },
     },
 )
+
 def create_message(payload: MessageIn, db: Session = Depends(get_db)):
     """
     Create a new message for the given session.

@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # Database configuration
-    DATABASE_URL: str = "sqlite:///./chat.db"
+    DATABASE_URL: str = "sqlite:///./data/chat.db"
 
     # API settings
     API_PREFIX: str = "/api"

@@ -4,14 +4,18 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Copy dependencies first (for efficient caching)
+# Copy dependencies first (for efficient caching) and .env
 COPY requirements.txt .
+COPY .env .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code
 COPY . .
+
+# Expose path
+ENV PYTHONPATH=/app
 
 # Expose the port used by FastAPI
 EXPOSE 8000
