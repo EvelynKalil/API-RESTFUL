@@ -1,7 +1,8 @@
 import uuid
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException,Request
 from fastapi.testclient import TestClient
+from slowapi.errors import RateLimitExceeded
 from app.main import app
 from app.core.errors import MissingFieldError
 from test.test_constants import (
@@ -9,12 +10,14 @@ from test.test_constants import (
     FIELD_ERROR,
     FIELD_CODE,
     FIELD_DETAILS,
+    FIELD_STATUS,
     ERROR_CODE_MISSING_FIELD,
     ERROR_CODE_NOT_FOUND,
     ERROR_CODE_INVALID_SENDER,
     ERROR_CODE_DUPLICATE_MESSAGE_ID,
     ERROR_CODE_SERVER,
     ERROR_CODE_UNAUTHORIZED,
+    ERROR_CODE_RATE_LIMIT,
     STATUS_BAD_REQUEST,
     STATUS_CONFLICT,
     STATUS_NOT_FOUND,
@@ -22,9 +25,11 @@ from test.test_constants import (
     STATUS_FORBIDDEN,
     STATUS_CREATED,
     STATUS_UNAUTHORIZED,
+    STATUS_TOO_MANY_REQUESTS,
     VALID_SENDER,
     INVALID_SENDER,
     GENERIC_SERVER_ERROR_MESSAGE,
+    ERROR_DETAIL_RATE_LIMIT,
     API_KEY_HEADER,
 )
 
@@ -38,6 +43,7 @@ class TestErrorHandlers:
     TEST_FORCE_MISSING_ENDPOINT = "/force-missing"
     TEST_FORCE_ERROR_ENDPOINT = "/force-error"
     TEST_FORCE_HTTP_EXCEPTION_ENDPOINT = "/force-http-exception"
+    TEST_FORCE_RATE_LIMIT_ENDPOINT = "/force-rate-limit"
     SESSION_ID_INVALID = "no-exist"
     SESSION_ID_VALID = "s1"
     FIELD_NAME_MISSING = "session_id"
@@ -135,3 +141,29 @@ class TestErrorHandlers:
             response = client_no_raise.get(self.TEST_FORCE_HTTP_EXCEPTION_ENDPOINT)
 
         assert response.status_code == STATUS_FORBIDDEN
+
+    def test_rate_limit_exceeded_handler(self):
+        """Should handle RateLimitExceeded with structured 429 error."""
+        from app.core.errors import init_error_handlers
+        import asyncio, json
+        init_error_handlers(app)
+
+        class MockLimit:
+            error_message = ERROR_DETAIL_RATE_LIMIT
+
+        exc = RateLimitExceeded(MockLimit())
+        mock_request = Request({"type": "http"})
+        handler = app.exception_handlers[RateLimitExceeded]
+
+        async def run_handler(handler, mock_request, exc):
+            return await handler(mock_request, exc)
+
+        response = asyncio.get_event_loop().run_until_complete(
+            run_handler(handler, mock_request, exc)
+        )
+
+        assert response.status_code == STATUS_TOO_MANY_REQUESTS
+        data = json.loads(response.body.decode())
+        assert data[FIELD_STATUS] == "error"  # o STATUS_ERROR_RESPONSE si la tienes
+        assert data[FIELD_ERROR][FIELD_CODE] == ERROR_CODE_RATE_LIMIT
+        assert ERROR_DETAIL_RATE_LIMIT in data[FIELD_ERROR][FIELD_DETAILS]
