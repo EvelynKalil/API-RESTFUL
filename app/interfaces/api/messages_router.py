@@ -1,7 +1,5 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy.orm import Session
 
+from sqlalchemy.orm import Session
 from app.core.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from app.core.auth import verify_api_key
 from app.domain.entities.message import Message
@@ -10,6 +8,10 @@ from app.infrastructure.database import get_db
 from app.infrastructure.message_repository_impl import SQLiteMessageRepository
 from app.interfaces.schemas.message_schema import MessageIn, MessageOut
 from app.interfaces.schemas.error_schema import ErrorResponse
+
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Query, status, Request
+from app.core.limiter import limiter
 
 router = APIRouter(tags=["Messages"], dependencies=[Depends(verify_api_key)])
 
@@ -52,8 +54,8 @@ def get_service(db: Session) -> MessageService:
         },
     },
 )
-
-def create_message(payload: MessageIn, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def create_message(request: Request, payload: MessageIn, db: Session = Depends(get_db)):
     """
     Create a new message for the given session.
     - **message_id**: unique identifier for the message

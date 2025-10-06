@@ -1,6 +1,7 @@
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError, HTTPException
+from slowapi.errors import RateLimitExceeded
 
 # Centralized error definitions
 ERRORS = {
@@ -38,6 +39,11 @@ ERRORS = {
         "code": "UNAUTHORIZED",
         "message": "Invalid or missing API key",
         "details": "You must provide a valid x-api-key header"
+    },
+    "RATE_LIMIT_EXCEEDED": {
+        "code": "RATE_LIMIT_EXCEEDED",
+        "message": "Rate limit exceeded",
+        "details": "Too many requests in a short period. Please try again later."
     }
 }
 
@@ -122,4 +128,14 @@ def init_error_handlers(app: FastAPI):
         return JSONResponse(
             status_code=exc.status_code,
             content={"status": "error", "error": ERRORS["SERVER_ERROR"]},
+        )
+
+    @app.exception_handler(RateLimitExceeded)
+    async def rate_limit_handler(_, exc: RateLimitExceeded):
+        error = ERRORS["RATE_LIMIT_EXCEEDED"].copy()
+        if hasattr(exc, "detail") and exc.detail:
+            error["details"] = str(exc.detail)
+        return JSONResponse(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            content={"status": "error", "error": error},
         )
