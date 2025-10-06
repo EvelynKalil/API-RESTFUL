@@ -21,3 +21,6 @@ Thumbs.db
 htmlcov/
 pytest_cache/
 .coverage
+
+# Environment variables
+.env

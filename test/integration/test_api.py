@@ -22,6 +22,8 @@ from test.test_constants import (
     STATUS_OK,
     ERROR_CODE_INVALID_SENDER,
     ERROR_CODE_NOT_FOUND,
+    ERROR_CODE_UNAUTHORIZED,
+    API_KEY_HEADER,
 )
 
 client = TestClient(app)
@@ -29,18 +31,18 @@ client = TestClient(app)
 
 class TestMessageAPI:
     """
-    Tests de integración para el endpoint /api/messages
+    Integration tests for /api/messages endpoints.
     """
 
-    # --- CONSTANTES PROPIAS DE ESTA CLASE ---
+    # --- CONSTANTES LOCALES ---
     MESSAGE_ID_VALID = "m100"
     MESSAGE_ID_INVALID_SENDER = "m101"
-    LOCAL_SESSION_ID = "s300"  # usada solo en este archivo
+    LOCAL_SESSION_ID = "s300"
     PAGINATION_LIMIT = 2
     PAGINATION_OFFSET = 0
 
-    # --- TESTS ---
-    def test_post_message_success(self):
+    def test_unauthorized_access(self):
+        """Should return 401 when no API key is provided."""
         payload = {
             FIELD_MESSAGE_ID: self.MESSAGE_ID_VALID,
             FIELD_SESSION_ID: SESSION_ID_VALID,
@@ -49,7 +51,19 @@ class TestMessageAPI:
         }
 
         response = client.post(BASE_URL_MESSAGES, json=payload)
+        assert response.status_code == 401
+        data = response.json()
+        assert data[FIELD_ERROR][FIELD_CODE] == ERROR_CODE_UNAUTHORIZED
 
+    def test_post_message_success(self):
+        payload = {
+            FIELD_MESSAGE_ID: self.MESSAGE_ID_VALID,
+            FIELD_SESSION_ID: SESSION_ID_VALID,
+            FIELD_CONTENT: CONTENT_VALID,
+            FIELD_SENDER: VALID_SENDER,
+        }
+
+        response = client.post(BASE_URL_MESSAGES, json=payload, headers=API_KEY_HEADER)
         assert response.status_code == STATUS_CREATED
         data = response.json()
         assert data[FIELD_MESSAGE_ID] == self.MESSAGE_ID_VALID
@@ -63,33 +77,34 @@ class TestMessageAPI:
             FIELD_SENDER: INVALID_SENDER,
         }
 
-        response = client.post(BASE_URL_MESSAGES, json=payload)
-
+        response = client.post(BASE_URL_MESSAGES, json=payload, headers=API_KEY_HEADER)
         assert response.status_code == STATUS_BAD_REQUEST
         data = response.json()
         assert data[FIELD_ERROR][FIELD_CODE] == ERROR_CODE_INVALID_SENDER
 
     def test_get_messages_with_pagination(self):
-        # Crear varios mensajes de prueba
+        """Should return paginated messages for a session."""
+        # Crear varios mensajes
         for i in range(5):
             client.post(BASE_URL_MESSAGES, json={
                 FIELD_MESSAGE_ID: f"m{i}",
                 FIELD_SESSION_ID: SESSION_ID_PAGINATION,
                 FIELD_CONTENT: CONTENT_VALID,
                 FIELD_SENDER: VALID_SENDER,
-            })
+            }, headers=API_KEY_HEADER)
 
         response = client.get(
             f"{BASE_URL_MESSAGES}/{SESSION_ID_PAGINATION}"
-            f"?limit={self.PAGINATION_LIMIT}&offset={self.PAGINATION_OFFSET}&sender={VALID_SENDER}"
+            f"?limit={self.PAGINATION_LIMIT}&offset={self.PAGINATION_OFFSET}&sender={VALID_SENDER}",
+            headers=API_KEY_HEADER,
         )
 
         assert response.status_code == STATUS_OK
         assert len(response.json()) == self.PAGINATION_LIMIT
 
     def test_get_messages_not_found(self):
-        response = client.get(f"{BASE_URL_MESSAGES}/{SESSION_ID_INVALID}")
-
+        """Should return 404 when session has no messages."""
+        response = client.get(f"{BASE_URL_MESSAGES}/{SESSION_ID_INVALID}", headers=API_KEY_HEADER)
         assert response.status_code == STATUS_NOT_FOUND
         data = response.json()
         assert data[FIELD_ERROR][FIELD_CODE] == ERROR_CODE_NOT_FOUND

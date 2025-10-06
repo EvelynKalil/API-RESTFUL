@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import RequestValidationError, HTTPException
 
 # Centralized error definitions
 ERRORS = {
@@ -33,6 +33,11 @@ ERRORS = {
         "code": "SERVER_ERROR",
         "message": "Internal server error",
         "details": "Unexpected error while processing request"
+    },
+    "UNAUTHORIZED": {
+        "code": "UNAUTHORIZED",
+        "message": "Invalid or missing API key",
+        "details": "You must provide a valid x-api-key header"
     }
 }
 
@@ -103,5 +108,18 @@ def init_error_handlers(app: FastAPI):
     async def generic_handler(_, __):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"status": "error", "error": ERRORS["SERVER_ERROR"]},
+        )
+
+    @app.exception_handler(HTTPException)
+    async def unauthorized_handler(_, exc: HTTPException):
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"status": "error", "error": ERRORS["UNAUTHORIZED"]},
+            )
+
+        return JSONResponse(
+            status_code=exc.status_code,
             content={"status": "error", "error": ERRORS["SERVER_ERROR"]},
         )

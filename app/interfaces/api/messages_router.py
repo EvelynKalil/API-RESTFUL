@@ -3,15 +3,15 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
+from app.core.auth import verify_api_key
 from app.domain.entities.message import Message
 from app.application.services.message_service import MessageService
 from app.infrastructure.database import get_db
 from app.infrastructure.message_repository_impl import SQLiteMessageRepository
 from app.interfaces.schemas.message_schema import MessageIn, MessageOut
-from app.interfaces.schemas.error_schema import ErrorResponse  # ✅ importa tu modelo de error
+from app.interfaces.schemas.error_schema import ErrorResponse
 
-router = APIRouter(prefix="/api/messages", tags=["Messages"])
-
+router = APIRouter(tags=["Messages"], dependencies=[Depends(verify_api_key)])
 
 # --- Dependency injection ---
 def get_service(db: Session) -> MessageService:
@@ -38,6 +38,9 @@ def get_service(db: Session) -> MessageService:
         400: {
             "description": "Bad Request (invalid format, sender or missing fields)",
             "model": ErrorResponse,
+        },
+        401: {"description": "Unauthorized",
+              "model": ErrorResponse
         },
         409: {
             "description": "Conflict (duplicate message_id)",
@@ -88,6 +91,9 @@ def create_message(payload: MessageIn, db: Session = Depends(get_db)):
         400: {
             "description": "Bad Request (invalid query parameters)",
             "model": ErrorResponse,
+        },
+        401: {"description": "Unauthorized",
+              "model": ErrorResponse
         },
         404: {
             "description": "No messages found for the given session ID",
