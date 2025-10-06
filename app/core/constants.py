@@ -98,7 +98,7 @@ ERROR_DETAIL_MISSING_FIELD = "One or more required fields are missing or blank."
 ERROR_DETAIL_INVALID_SENDER = "Allowed values are 'user' or 'system'."
 ERROR_DETAIL_DUPLICATE_MESSAGE_ID = "The provided message_id must be unique."
 ERROR_DETAIL_NOT_FOUND = "No messages were found for the given criteria."
-ERROR_DETAIL_SERVER_ERROR = "Unexpected error while processing request."
+ERROR_DETAIL_SERVER_ERROR = "Unexpected error while processing request"
 ERROR_DETAIL_UNAUTHORIZED = "You must provide a valid x-api-key header."
 ERROR_DETAIL_RATE_LIMIT_EXCEEDED = "Too many requests in a short period. Please try again later."
 
