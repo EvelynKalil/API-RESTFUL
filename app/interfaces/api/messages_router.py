@@ -111,6 +111,7 @@ def list_messages(
         limit: Optional[int] = Query(DEFAULT_LIMIT, ge=0, le=100, description="Maximum number of results to return"),
         offset: Optional[int] = Query(DEFAULT_OFFSET, ge=0, description="Starting position of results"),
         sender: Optional[str] = Query(None, description="Filter messages by sender (`user` or `system`)"),
+        query: Optional[str] = Query(None, description="Search text within message content"),
 ):
     """
     List all messages belonging to a given session.
@@ -119,6 +120,6 @@ def list_messages(
     service = get_service(db)
 
     results = service.get_messages(
-        session_id=session_id, limit=limit, offset=offset, sender=sender
+        session_id=session_id, limit=limit, offset=offset, sender=sender, query=query
     )
     return [MessageOut(**m.__dict__) for m in results]

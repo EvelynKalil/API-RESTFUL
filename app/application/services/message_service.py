@@ -46,10 +46,16 @@ class MessageService:
             "processed_at": datetime.now(timezone.utc).isoformat()
         }
 
-    def get_messages(self, session_id: str, limit: int, offset: int, sender: Optional[str] = None) -> List[Message]:
+    def get_messages(self,session_id: str,limit: int,offset: int,sender: Optional[str] = None,query: Optional[str] = None) -> List[Message]:
         if sender and sender not in VALID_SENDERS:
             raise InvalidSenderError()
         results = self.repository.get_by_session(session_id, limit, offset, sender)
         if not results:
             raise NotFoundError("messages")
+        # Apply simple search filter if 'query' is provided
+        if query:
+            results = [msg for msg in results if query.lower() in msg.content.lower()]
+        if not results:
+            raise NotFoundError("messages")
+
         return results
