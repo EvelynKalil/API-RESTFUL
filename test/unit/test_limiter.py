@@ -23,11 +23,9 @@ class TestDummyLimiter:
         """Should return None for any undefined method accessed dynamically."""
         limiter = DummyLimiter()
 
-        # Accessing undefined attributes triggers __getattr__
         random_method_1 = limiter.any_random_name
         random_method_2 = limiter.another_random_method
 
-        # Both should be callable and return None
         assert callable(random_method_1)
         assert callable(random_method_2)
         assert random_method_1() is None

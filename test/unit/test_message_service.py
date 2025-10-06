@@ -25,7 +25,6 @@ class FakeRepo(MessageRepository):
         return message
 
     def get_by_session(self, session_id, limit, offset, sender=None):
-        # Simula paginación y filtrado básico por sender
         filtered = [m for m in self._messages if m.session_id == session_id]
         if sender:
             filtered = [m for m in filtered if m.sender == sender]
@@ -41,7 +40,6 @@ def service():
 class TestMessageService:
     """Unit tests for MessageService."""
 
-    # --- LOCAL CONSTANTS ---
     MESSAGE_ID_EMPTY = ""
     MESSAGE_ID_VALID = "m1"
     MESSAGE_ID_BADWORD = "m2"
@@ -52,8 +50,6 @@ class TestMessageService:
     SESSION_ID_EMPTY = ""
     BADWORD_CONTENT = CONTENT_WITH_BADWORD
     SHORT_CONTENT = CONTENT_SHORT
-
-    # --- CONSTANTS FOR SEARCH TESTS ---
     QUERY_TERM_MATCH = "hello"
     QUERY_TERM_NO_MATCH = "notmatch"
     MESSAGE_ID_1 = "m1"

@@ -39,7 +39,6 @@ client = TestClient(app)
 class TestErrorHandlers:
     """Unit tests for global error handlers."""
 
-    # --- LOCAL CONSTANTS ---
     TEST_FORCE_MISSING_ENDPOINT = "/force-missing"
     TEST_FORCE_ERROR_ENDPOINT = "/force-error"
     TEST_FORCE_HTTP_EXCEPTION_ENDPOINT = "/force-http-exception"

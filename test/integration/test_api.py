@@ -34,7 +34,6 @@ class TestMessageAPI:
     Integration tests for /api/messages endpoints.
     """
 
-    # --- CONSTANTES LOCALES ---
     MESSAGE_ID_VALID = "m100"
     MESSAGE_ID_INVALID_SENDER = "m101"
     LOCAL_SESSION_ID = "s300"

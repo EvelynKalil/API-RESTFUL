@@ -24,7 +24,6 @@ def db_session(tmp_path):
 class TestSQLiteMessageRepository:
     """Tests de integración para SQLiteMessageRepository."""
 
-    # --- CONSTANTES PROPIAS DE ESTE TEST ---
     SESSION_ID = "s1"
     MESSAGE_ID_1 = "m1"
     MESSAGE_ID_2 = "m2"
@@ -102,8 +101,7 @@ class TestSQLiteMessageRepository:
 
     def test_get_db_yields_and_closes(self):
         gen = get_db()
-        db = next(gen)  # obtiene la sesión
+        db = next(gen)
         assert db is not None
         assert isinstance(db, SessionLocal().__class__)
-        # cerrar la sesión simulando el finally
         gen.close()

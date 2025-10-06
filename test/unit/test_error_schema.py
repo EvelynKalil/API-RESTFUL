@@ -14,7 +14,6 @@ from test.test_constants import (
 class TestErrorResponseSchema:
     """Unit tests for ErrorResponse Pydantic schema."""
 
-    # --- LOCAL CONSTANTS ---
     ERROR_MESSAGE = "Invalid sender value"
     ERROR_DETAILS = "Allowed values are 'user' or 'system'"
 

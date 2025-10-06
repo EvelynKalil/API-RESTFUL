@@ -9,7 +9,6 @@ from sqlalchemy.pool import StaticPool
 from app.main import app
 from app.infrastructure.database import Base, get_db
 
-# Engine único en memoria, compartido por todos
 engine = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},
@@ -17,7 +16,6 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(bind=engine)
 
-# Crear tablas una vez
 Base.metadata.create_all(bind=engine)
 
 def override_get_db():
